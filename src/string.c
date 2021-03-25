@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "string.h"
+#include "./string.h"
 
 /** return the length of a string
 */

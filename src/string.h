@@ -1,3 +1,7 @@
+#ifndef _STRING_H
+#define _STRING_H
+
+
 /**a basic library for String
 */
 
@@ -19,3 +23,5 @@ int strcpy(char *s1, char *s2);
  * cannot recognize a negative number(not necessary for this project)
 */
 int atoi(char *s);
+
+#endif
