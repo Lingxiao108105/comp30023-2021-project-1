@@ -165,7 +165,7 @@ int run_scheduler(Scheduler *scheduler){
     //after running all the processor, it becomes next second
     scheduler->curr_time ++;
 
-
+    int re_arange_processes = 0;
     //check the status of all the processor
     curr_node = processores->head;
     while(curr_node != NULL){
@@ -173,6 +173,8 @@ int run_scheduler(Scheduler *scheduler){
         //if the first process is finished, 
         //add this information to Execution transcript buffer if it is process, or it may be subprocess
         if(check_processor(curr_processor) == STATUS_FINISH){
+            //maybe we need to rearrange the processores
+            re_arange_processes = 1;
             Process *process = head(curr_processor->processes);
             if(process->child_pid != -1){//it is a subprocess
                 //pop it out from the Pqueue *children;
@@ -196,6 +198,16 @@ int run_scheduler(Scheduler *scheduler){
         curr_node = curr_node->next;
     }
 
+    //rearrange the processores
+    if(re_arange_processes){
+        Pqueue *temp_processores = create_pqueue();
+        while(!isEmpty(processores)){
+            push_data(temp_processores,pop(processores),&compare_processor);
+        }
+        free_pqueue(processores,&free_processor);
+        processores = temp_processores;
+        scheduler->processores = temp_processores;
+    }
     //print all the Execution transcripts
     print_buffers(scheduler);
     

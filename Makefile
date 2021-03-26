@@ -26,4 +26,4 @@ processor.o: processor.c processor.h struct.h
 
 clean:
 	-rm *.o
-	rm *.exe
+	rm allocate
