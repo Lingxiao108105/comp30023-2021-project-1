@@ -25,5 +25,4 @@ processor.o: processor.c processor.h struct.h
 .PHONY: clean
 
 clean:
-	-rm *.o
-	rm allocate
+	rm -rf *.o allocate

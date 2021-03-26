@@ -36,5 +36,8 @@ int isEmpty(Pqueue *pqueue);
 int pqueue_length(Pqueue *pqueue);
 // remove a node which contain a specific data
 void remove_node(Pqueue *pqueue, void *data);
+/**sort the priority queue
+ */
+Pqueue *pqueue_sort(Pqueue *pqueue, int (*compare)(void *data1, void *data2));
 
 #endif

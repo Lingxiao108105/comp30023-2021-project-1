@@ -163,3 +163,16 @@ void remove_node(Pqueue *pqueue, void *data){
     }
 }
 
+/**sort the priority queue
+ */
+Pqueue *pqueue_sort(Pqueue *pqueue, int (*compare)(void *data1, void *data2)){
+    Pqueue *temp_pqueue = create_pqueue();
+    while(!isEmpty(pqueue)){
+        push_data(temp_pqueue,pop(pqueue),compare);
+    }
+    //here the pqueue is empty
+    free(pqueue);
+    pqueue = temp_pqueue;
+    return temp_pqueue;
+}
+

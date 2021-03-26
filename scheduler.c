@@ -112,25 +112,38 @@ void split_process(Scheduler *scheduler){
     Process *subprocess;
     Pqueue *children = create_pqueue();
     int i;
+    int split_num;
+    Node *curr_node = scheduler->processores->head;
+     Processor *curr_processor;
     //2 processor
     if(scheduler->count_processor == 2){
-        Node *curr_node = scheduler->processores->head;
-        Processor *curr_processor;
-        int remaining_time = (process->remaining_time + 1)/2 +1;
-        //for each process, push it into children to relate all subprocess for a process together
-        for(i=0;i<2;i++,curr_node=curr_node->next){
-            curr_processor = curr_node->data;
-            subprocess = create_process(process->pid,PARALLELISABLE,i,children,process->coming_time,process->required_time,remaining_time);
-            push_data(children,subprocess,&compare_process);
-            allocate_process(curr_processor,subprocess);
-        }
-        
+        split_num = 2;
     }
     //N processor(not today)
-    //may need to sort cpu pqueue 
     else{
-        exit(0);
+        //split to the minimum number between number of processor and remaining time
+        split_num = scheduler->count_processor > process->remaining_time ? process->remaining_time : scheduler->count_processor;
     }
+
+
+    int remaining_time = process->remaining_time/split_num +1;
+    //need to + 1
+    if((process->remaining_time)/(double)split_num > process->remaining_time/split_num){
+        remaining_time++;
+    }
+    //for each process, push it into children to relate all subprocess for a process together
+    for(i=0;i<split_num;i++,curr_node=curr_node->next){
+        curr_processor = curr_node->data;
+        subprocess = create_process(process->pid,PARALLELISABLE,i,children,process->coming_time,process->required_time,remaining_time);
+        push_data(children,subprocess,&compare_process);
+        allocate_process(curr_processor,subprocess);
+    }
+
+    if(scheduler->count_processor > 2){
+        //sort the processores
+        scheduler->processores = pqueue_sort(scheduler->processores, &compare_processor);
+    }
+
     free_process(process);
 }
 
@@ -200,14 +213,10 @@ int run_scheduler(Scheduler *scheduler){
 
     //rearrange the processores
     if(re_arange_processes){
-        Pqueue *temp_processores = create_pqueue();
-        while(!isEmpty(processores)){
-            push_data(temp_processores,pop(processores),&compare_processor);
-        }
-        free_pqueue(processores,&free_processor);
-        processores = temp_processores;
-        scheduler->processores = temp_processores;
+        scheduler->processores = pqueue_sort(scheduler->processores, &compare_processor);
+        processores = scheduler->processores;
     }
+    
     //print all the Execution transcripts
     print_buffers(scheduler);
     
@@ -289,7 +298,12 @@ void performance_statistics(Scheduler *scheduler){
     }
 
     //average time (in seconds, rounded up to an integer) between the time when theprocess completed and when it arrived
-    int turnaround_time = (int)((double)total_turnaround_time/num_process + 0.5);
+    double d_turnaround_time = (double)total_turnaround_time/num_process;
+    int turnaround_time = (int)d_turnaround_time;
+    //rounded up
+    if(d_turnaround_time > turnaround_time){
+        turnaround_time++;
+    }
     //Time overhead both rounded to the first two decimal points
     double time_overhead = total_time_overhead/num_process + 0.005;
     max_time_overhead += 0.005;
