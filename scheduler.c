@@ -64,20 +64,29 @@ int schedule_process(Scheduler *scheduler){
         return -1;
     }
     if(scheduler->upcoming_process->coming_time == scheduler->curr_time){
-        //non-parallelisable process
-        if(scheduler->upcoming_process->parallelisable == NOTPARALLELISABLE || scheduler->count_processor == 1){
-            //need to reassign head processor again
-            Processor *head_processor = pop(scheduler->processores);
-            allocate_process(head_processor,scheduler->upcoming_process);
-            push_data(scheduler->processores,head_processor,&compare_processor);
-        }   
-        //parallelisable process 
-        else{
-            split_process(scheduler);
-            
+        Pqueue *processes = create_pqueue();
+        //read until get a process in come in future
+        while(scheduler->upcoming_process != NULL && scheduler->upcoming_process->coming_time == scheduler->curr_time){
+            push_data(processes,scheduler->upcoming_process,&compare_process);
+            scheduler->upcoming_process = read_next_process(scheduler->process_file);
+            (scheduler->num_proc_left)++;
         }
-        scheduler->upcoming_process = read_next_process(scheduler->process_file);
-        (scheduler->num_proc_left)++;
+        while(!isEmpty(processes)){
+            Process *curr_process = pop(processes);
+            //non-parallelisable process
+            if(curr_process->parallelisable == NOTPARALLELISABLE || scheduler->count_processor == 1){
+                //need to reassign head processor again
+                Processor *head_processor = pop(scheduler->processores);
+                allocate_process(head_processor,curr_process);
+                push_data(scheduler->processores,head_processor,&compare_processor);
+            }   
+            //parallelisable process 
+            else{
+                split_process(scheduler,curr_process);
+            }
+        }
+        free_pqueue(processes,&free_process);
+        
         return 1;
     }
     return 0;
@@ -106,15 +115,14 @@ Process *read_next_process(FILE *process_file){
 /**
 split the process which is parallelisable
 */
-void split_process(Scheduler *scheduler){
+void split_process(Scheduler *scheduler, Process *process){
 
-    Process *process = scheduler->upcoming_process;
     Process *subprocess;
     Pqueue *children = create_pqueue();
     int i;
     int split_num;
     Node *curr_node = scheduler->processores->head;
-     Processor *curr_processor;
+    Processor *curr_processor;
     //2 processor
     if(scheduler->count_processor == 2){
         split_num = 2;
@@ -153,8 +161,8 @@ void split_process(Scheduler *scheduler){
  * return the status of scheduler after running
  */
 int run_scheduler(Scheduler *scheduler){
-    //try to schedule next process until it cannot schedule a new process now
-    while(schedule_process(scheduler)==1){};
+
+    schedule_process(scheduler);
     Pqueue *processores = scheduler->processores;
     Node *curr_node = processores->head;
     Processor *curr_processor;

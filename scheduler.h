@@ -34,9 +34,9 @@ int schedule_process(Scheduler *scheduler);
  */
 Process *read_next_process(FILE *process_file);
 /**
- * split the process which is parallelisable
+split the process which is parallelisable
 */
-void split_process(Scheduler *scheduler);
+void split_process(Scheduler *scheduler, Process *process);
 /**run all the processor in the cpu
  * return the status of scheduler after running
  */
