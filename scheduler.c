@@ -259,7 +259,11 @@ void finish_a_process(Scheduler *scheduler, Processor *curr_processor, Process *
  */
 static void eliminate_zero(double num, char *str){
     int i;
-    sprintf(str,"%.2f",num);
+    //this function will round up sometime, but that's not I want
+    //so round up to 3 decimal and eliminate last char
+    sprintf(str,"%.3f",num);
+    str[my_strlen(str)-1] = '\0';
+    //eliminate the 0 at the end of a decimal number
     for(i=my_strlen(str)-1;i>=0;i--){
         if(str[i]=='0'){
             str[i] = '\0';
