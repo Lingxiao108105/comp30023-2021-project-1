@@ -13,7 +13,7 @@ Process *create_process(int pid, char parallelisable, int child_pid, Pqueue *chi
     new_process->status = STATUS_WAIT;
     new_process->children = children;
     new_process->coming_time = coming_time;
-    new_process->required_time = remaining_time;
+    new_process->required_time = required_time;
     new_process->remaining_time = remaining_time;
     return new_process;
 }
@@ -34,6 +34,9 @@ void free_process(void *void_process){
  * 0 otherwise
  */
 int start_process(Process *process){
+    if(process == NULL){
+        return 0;
+    }
     if(process->status == STATUS_WAIT){
         process->status = STATUS_RUN;
         return 1;

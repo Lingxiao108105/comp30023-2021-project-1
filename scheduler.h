@@ -33,9 +33,10 @@ int schedule_process(Scheduler *scheduler);
  * return NULL if reach the end of file
  */
 Process *read_next_process(FILE *process_file);
-/**split the process which is parallelisable
- */
-//Pqueue *split_process();
+/**
+ * split the process which is parallelisable
+*/
+void split_process(Scheduler *scheduler);
 /**run all the processor in the cpu
  * return the status of scheduler after running
  */

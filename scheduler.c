@@ -64,7 +64,18 @@ int schedule_process(Scheduler *scheduler){
         return -1;
     }
     if(scheduler->upcoming_process->coming_time == scheduler->curr_time){
-        allocate_process(head(scheduler->processores),scheduler->upcoming_process);
+        //non-parallelisable process
+        if(scheduler->upcoming_process->parallelisable == NOTPARALLELISABLE || scheduler->count_processor == 1){
+            //need to reassign head processor again
+            Processor *head_processor = pop(scheduler->processores);
+            allocate_process(head_processor,scheduler->upcoming_process);
+            push_data(scheduler->processores,head_processor,&compare_processor);
+        }   
+        //parallelisable process 
+        else{
+            split_process(scheduler);
+            
+        }
         scheduler->upcoming_process = read_next_process(scheduler->process_file);
         (scheduler->num_proc_left)++;
         return 1;
@@ -94,11 +105,35 @@ Process *read_next_process(FILE *process_file){
 
 /**
 split the process which is parallelisable
-
-Pqueue *split_process(){
-
-}
 */
+void split_process(Scheduler *scheduler){
+
+    Process *process = scheduler->upcoming_process;
+    Process *subprocess;
+    Pqueue *children = create_pqueue();
+    int i;
+    //2 processor
+    if(scheduler->count_processor == 2){
+        Node *curr_node = scheduler->processores->head;
+        Processor *curr_processor;
+        int remaining_time = (process->remaining_time + 1)/2 +1;
+        //for each process, push it into children to relate all subprocess for a process together
+        for(i=0;i<2;i++,curr_node=curr_node->next){
+            curr_processor = curr_node->data;
+            subprocess = create_process(process->pid,PARALLELISABLE,i,children,process->coming_time,process->required_time,remaining_time);
+            push_data(children,subprocess,&compare_process);
+            allocate_process(curr_processor,subprocess);
+        }
+        
+    }
+    //N processor(not today)
+    //may need to sort cpu pqueue 
+    else{
+        exit(0);
+    }
+    free_process(process);
+}
+
 
 
 /**run all the processor in the cpu
@@ -126,8 +161,11 @@ int run_scheduler(Scheduler *scheduler){
     //print all the Execution transcripts
     print_buffers(scheduler);
 
+    
     //after running all the processor, it becomes next second
     scheduler->curr_time ++;
+
+
     //check the status of all the processor
     curr_node = processores->head;
     while(curr_node != NULL){
@@ -137,9 +175,16 @@ int run_scheduler(Scheduler *scheduler){
         if(check_processor(curr_processor) == STATUS_FINISH){
             Process *process = head(curr_processor->processes);
             if(process->child_pid != -1){//it is a subprocess
-                //if it is the last process
-                if(pqueue_length(curr_processor->processes)==1){
+                //if it is the last subprocess
+                if(pqueue_length(process->children)==1){
                     finish_a_process(scheduler, curr_processor, process);
+                }
+                //not the last subprocess, pop it out the Pqueue *children;
+                else{
+                    remove_node(process->children,process);
+                    process->children = NULL;
+                    pop(curr_processor->processes);
+                    free_process(process);
                 }
             }
             else{
@@ -148,7 +193,6 @@ int run_scheduler(Scheduler *scheduler){
         }
         curr_node = curr_node->next;
     }
-
 
     //print all the Execution transcripts
     print_buffers(scheduler);
@@ -222,7 +266,7 @@ void performance_statistics(Scheduler *scheduler){
         curr_turnaround_time = curr_process->finish_time - curr_process->coming_time;
         total_turnaround_time += curr_turnaround_time;
         num_process++;
-
+    
         curr_time_overhead = (double)curr_turnaround_time / curr_process->required_time;
         max_time_overhead = curr_time_overhead > max_time_overhead ? curr_time_overhead : max_time_overhead;
         total_time_overhead += curr_time_overhead;
