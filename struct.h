@@ -64,7 +64,6 @@ typedef struct buffer{
     int child_pid;
     int remaining_time;
     int cid;
-    int proc_remaining;
 }Buffer;
 
 

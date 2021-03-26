@@ -49,7 +49,7 @@ void finish_a_process(Scheduler *scheduler, Processor *curr_processor, Process *
 void performance_statistics(Scheduler *scheduler);
 /**create a Execution transcript
  */
-Buffer *create_buffer(int status, int pid, int child_pid, int remaining_time, int cid, int proc_remaining);
+Buffer *create_buffer(int status, int pid, int child_pid, int remaining_time, int cid);
 /**free the Execution transcript
  */
 void free_buffer(void *buffer);

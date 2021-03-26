@@ -172,7 +172,7 @@ int run_scheduler(Scheduler *scheduler){
         //if begin a process, add this information to Execution transcript buffer
         if(start_processor(curr_processor)){
             Process *process = head(curr_processor->processes);
-            Buffer *buffer = create_buffer(STATUS_RUN,process->pid,process->child_pid,process->remaining_time,curr_processor->cid, -1);
+            Buffer *buffer = create_buffer(STATUS_RUN,process->pid,process->child_pid,process->remaining_time,curr_processor->cid);
             push_data(scheduler->execution_transcript_buffer,buffer,&compare_buffer);
         }
         //run the processor
@@ -245,7 +245,7 @@ int run_scheduler(Scheduler *scheduler){
 void finish_a_process(Scheduler *scheduler, Processor *curr_processor, Process *process){
     (scheduler->num_proc_left)--;
 
-    Buffer *buffer = create_buffer(STATUS_FINISH,process->pid,process->child_pid,process->remaining_time,curr_processor->cid, scheduler->num_proc_left);
+    Buffer *buffer = create_buffer(STATUS_FINISH,process->pid,process->child_pid,process->remaining_time,curr_processor->cid);
     push_data(scheduler->execution_transcript_buffer,buffer,&compare_buffer);
 
     remove_node(curr_processor->processes,process);
@@ -332,7 +332,7 @@ void performance_statistics(Scheduler *scheduler){
 
 /**create a Execution transcript
  */
-Buffer *create_buffer(int status, int pid, int child_pid, int remaining_time, int cid, int proc_remaining){
+Buffer *create_buffer(int status, int pid, int child_pid, int remaining_time, int cid){
     Buffer *buffer = (Buffer *)malloc(sizeof(Buffer));
 
     buffer->status =  status;
@@ -340,7 +340,6 @@ Buffer *create_buffer(int status, int pid, int child_pid, int remaining_time, in
     buffer->child_pid = child_pid;
     buffer->remaining_time = remaining_time;
     buffer->cid = cid;
-    buffer->proc_remaining = proc_remaining;
 
     return buffer;
 }
@@ -394,7 +393,7 @@ void print_buffers(Scheduler *scheduler){
         }
         //print the FINISHED
         else{
-            printf("%d,FINISHED,pid=%d,proc_remaining=%d\n",scheduler->curr_time,buffer->pid,buffer->proc_remaining);
+            printf("%d,FINISHED,pid=%d,proc_remaining=%d\n",scheduler->curr_time,buffer->pid,scheduler->num_proc_left);
         }
         //release the buffer
         free_buffer(buffer);
