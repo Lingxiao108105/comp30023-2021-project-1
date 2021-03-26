@@ -15,6 +15,9 @@ Processor *create_processor(int cid){
 /**free a processor
  */
 void free_processor(void *void_processor){
+    if(void_processor == NULL){
+        return;
+    }
     Processor *processor = (Processor *)void_processor;
     free_pqueue(processor->processes,&free_process);
     free(processor);

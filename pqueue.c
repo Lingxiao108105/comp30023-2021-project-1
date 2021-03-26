@@ -23,12 +23,18 @@ Node *new_node(void *data){
 
 //free a node and data inside
 void free_node(Node *node, void (*free_data)(void *data)){
+    if(node == NULL){
+        return;
+    }
     free_data(node->data);
     free(node);
 }
 
 //free a priority queue and data inside
 void free_pqueue(Pqueue *pqueue, void (*free_data)(void *data)){
+    if(pqueue == NULL){
+        return;
+    }
     Node *curr_node=pqueue->head;
     Node *temp_node;
     while(curr_node!=NULL){

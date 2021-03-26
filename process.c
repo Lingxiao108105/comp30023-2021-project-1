@@ -21,6 +21,9 @@ Process *create_process(int pid, char parallelisable, int child_pid, Pqueue *chi
 /**free a process
  */
 void free_process(void *void_process){
+    if(void_process == NULL){
+        return;
+    }
     Process *process = (Process *)void_process;
     free_pqueue(process->children,&free_process);
     free(process);

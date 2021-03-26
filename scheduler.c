@@ -44,6 +44,9 @@ Scheduler *create_scheduler(int num_p,FILE *process_file){
 /**release the scheduler
  */
 void free_scheduler(Scheduler *scheduler){
+    if(scheduler == NULL){
+        return;
+    }
     free_process(scheduler->upcoming_process);
     free_pqueue(scheduler->processores,&free_processor);
     free_pqueue(scheduler->execution_transcript_buffer,&free_buffer);
@@ -265,7 +268,9 @@ Buffer *create_buffer(int status, int pid, int child_pid, int remaining_time, in
 /**free the Execution transcript
  */
 void free_buffer(void *buffer){
-    free(buffer);
+    if(buffer != NULL){
+        free(buffer);
+    }
 }
 
 /**compare two Execution information
