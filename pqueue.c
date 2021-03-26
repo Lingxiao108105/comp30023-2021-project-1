@@ -153,6 +153,9 @@ void remove_node(Pqueue *pqueue, void *data){
             curr_node = curr_node->next;
         }
 
+        if(curr_node->next==NULL){
+            return;
+        }
         Node *temp = curr_node->next;
         curr_node->next = temp->next;
         (pqueue->length)--;

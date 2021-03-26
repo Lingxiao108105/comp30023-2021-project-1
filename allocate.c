@@ -20,10 +20,10 @@ int main(int argc, char* argv[]){
     //read the command
     int i = 0;
     for(i=0;i<argc;i++){
-        if(!strcmp(argv[i],FILE_CMD)){
+        if(!my_strcmp(argv[i],FILE_CMD)){
             process_file = fopen(argv[++i],"r");
         }
-        else if(!strcmp(argv[i],PROCESS_NUM_CMD)){
+        else if(!my_strcmp(argv[i],PROCESS_NUM_CMD)){
             num_p = atoi(argv[++i]);
         }
     }

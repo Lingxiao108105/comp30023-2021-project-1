@@ -175,14 +175,16 @@ int run_scheduler(Scheduler *scheduler){
         if(check_processor(curr_processor) == STATUS_FINISH){
             Process *process = head(curr_processor->processes);
             if(process->child_pid != -1){//it is a subprocess
+                //pop it out from the Pqueue *children;
+                remove_node(process->children,process);
+                Pqueue *childern = process->children;
+                process->children = NULL;
                 //if it is the last subprocess
-                if(pqueue_length(process->children)==1){
+                if(pqueue_length(childern)==0){
                     finish_a_process(scheduler, curr_processor, process);
                 }
-                //not the last subprocess, pop it out the Pqueue *children;
+                //not the last subprocess
                 else{
-                    remove_node(process->children,process);
-                    process->children = NULL;
                     pop(curr_processor->processes);
                     free_process(process);
                 }
@@ -229,7 +231,7 @@ void finish_a_process(Scheduler *scheduler, Processor *curr_processor, Process *
 static void eliminate_zero(double num, char *str){
     int i;
     sprintf(str,"%.2f",num);
-    for(i=strlen(str)-1;i>=0;i--){
+    for(i=my_strlen(str)-1;i>=0;i--){
         if(str[i]=='0'){
             str[i] = '\0';
         }
