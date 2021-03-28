@@ -125,7 +125,7 @@ int isEmpty(Pqueue *pqueue){
 }
 
 // return  the length of priority queue
-int pqueue_length(Pqueue *pqueue){
+unsigned int pqueue_length(Pqueue *pqueue){
     return pqueue->length;
 }
 

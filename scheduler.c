@@ -115,9 +115,9 @@ int schedule_process(Scheduler *scheduler){
 Process *read_next_process(FILE *process_file){
     Process *process;
     //the property of process
-    int coming_time;
-    int pid;
-    int remaining_time;
+    unsigned int coming_time;
+    unsigned int pid;
+    unsigned int remaining_time;
     char parallelisable;
 
     //read the process from file
@@ -166,7 +166,7 @@ void split_process(Scheduler *scheduler, Process *process, int split_num){
 
     Node *curr_node = scheduler->processores->head;
     Processor *curr_processor;
-    int remaining_time = process->remaining_time/split_num +1;
+    unsigned int remaining_time = process->remaining_time/split_num +1;
     //need to + 1
     if(process->remaining_time%split_num){
         remaining_time++;
@@ -317,9 +317,9 @@ static void eliminate_zero(double num, char *str){
  */
 void performance_statistics(Scheduler *scheduler){
     //average turnaround time = total turnaround time / num of process
-    int total_turnaround_time = 0;
-    int num_process = 0;
-    int curr_turnaround_time;
+    unsigned int total_turnaround_time = 0;
+    unsigned int num_process = 0;
+    unsigned int curr_turnaround_time;
 
     //time overhead
     double max_time_overhead = -1;
@@ -345,7 +345,7 @@ void performance_statistics(Scheduler *scheduler){
 
     //average time (in seconds, rounded up to an integer) between the time when theprocess completed and when it arrived
     double d_turnaround_time = (double)total_turnaround_time/num_process;
-    int turnaround_time = (int)d_turnaround_time;
+    unsigned int turnaround_time = (unsigned int)d_turnaround_time;
     //rounded up
     if(d_turnaround_time > turnaround_time){
         turnaround_time++;
@@ -370,7 +370,7 @@ void performance_statistics(Scheduler *scheduler){
 
 /**create a Execution transcript
  */
-Buffer *create_buffer(int status, int pid, int child_pid, int remaining_time, int cid){
+Buffer *create_buffer(int status, unsigned int pid, int child_pid, unsigned int remaining_time, int cid){
     Buffer *buffer = (Buffer *)malloc(sizeof(Buffer));
 
     buffer->status =  status;
@@ -423,15 +423,15 @@ void print_buffers(Scheduler *scheduler){
         //print the RUNNING
         if(buffer->status == STATUS_RUN){
             if(buffer->child_pid == -1){//it is not a subprocess
-                printf("%d,RUNNING,pid=%d,remaining_time=%d,cpu=%d\n",scheduler->curr_time,buffer->pid,buffer->remaining_time,buffer->cid);
+                printf("%u,RUNNING,pid=%u,remaining_time=%u,cpu=%d\n",scheduler->curr_time,buffer->pid,buffer->remaining_time,buffer->cid);
             }
             else{//subprocess
-                printf("%d,RUNNING,pid=%d.%d,remaining_time=%d,cpu=%d\n",scheduler->curr_time,buffer->pid,buffer->child_pid,buffer->remaining_time,buffer->cid);
+                printf("%u,RUNNING,pid=%u.%d,remaining_time=%u,cpu=%d\n",scheduler->curr_time,buffer->pid,buffer->child_pid,buffer->remaining_time,buffer->cid);
             }
         }
         //print the FINISHED
         else{
-            printf("%d,FINISHED,pid=%d,proc_remaining=%d\n",scheduler->curr_time,buffer->pid,scheduler->num_proc_left);
+            printf("%u,FINISHED,pid=%u,proc_remaining=%u\n",scheduler->curr_time,buffer->pid,scheduler->num_proc_left);
         }
         //release the buffer
         free_buffer(buffer);
@@ -455,7 +455,7 @@ void customized_schedule_algorithm(Scheduler *scheduler){
     }
 
     //the minimum time to finish all the parallelisable processes
-    int minimum_finishing_time = -1;
+    unsigned int minimum_finishing_time = -1;
     int split_num;
 
     //allocate process when processes waiting for process is not empty
@@ -475,7 +475,7 @@ void customized_schedule_algorithm(Scheduler *scheduler){
             
             //compute minimum time to finish all the parallelisable processes(round up to interger)
             if(minimum_finishing_time == -1){
-                int remaining_time = total_remaining_time(scheduler->processores,scheduler->wait_allocation_processes) + curr_process->remaining_time;
+                unsigned int remaining_time = total_remaining_time(scheduler->processores,scheduler->wait_allocation_processes) + curr_process->remaining_time;
                 minimum_finishing_time = remaining_time/scheduler->count_processor;
                 if(total_remaining_time(scheduler->processores,scheduler->wait_allocation_processes)%scheduler->count_processor){
                     minimum_finishing_time++;
@@ -526,8 +526,8 @@ int check_empty_processor(Pqueue *processores){
 
 /**compute total remaining time among all the processores and processes
  */
-int total_remaining_time(Pqueue *processores, Pqueue *processes){
-    int total_remaining_time = 0;
+unsigned int total_remaining_time(Pqueue *processores, Pqueue *processes){
+    unsigned int total_remaining_time = 0;
     Node *curr_node;
 
     if(processores != NULL ){

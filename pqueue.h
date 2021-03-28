@@ -33,7 +33,7 @@ void push_data(Pqueue *pqueue, void *data, int (*compare)(void *data1, void *dat
 // return whether the priority queue is empty
 int isEmpty(Pqueue *pqueue);
 // return  the length of priority queue
-int pqueue_length(Pqueue *pqueue);
+unsigned int pqueue_length(Pqueue *pqueue);
 // remove a node which contain a specific data
 void remove_node(Pqueue *pqueue, void *data);
 /**sort the priority queue

@@ -5,7 +5,7 @@
 
 /**create a new process
  */
-Process *create_process(int pid, char parallelisable, int child_pid, Pqueue *children,int coming_time, int required_time, int remaining_time){
+Process *create_process(unsigned int pid, char parallelisable, unsigned int child_pid, Pqueue *children,unsigned int coming_time, unsigned int required_time, unsigned int remaining_time){
     Process *new_process = (Process *)malloc(sizeof(Process));
     new_process->pid = pid;
     new_process->parallelisable = parallelisable;

@@ -54,7 +54,7 @@ void finish_a_process(Scheduler *scheduler, Processor *curr_processor, Process *
 void performance_statistics(Scheduler *scheduler);
 /**create a Execution transcript
  */
-Buffer *create_buffer(int status, int pid, int child_pid, int remaining_time, int cid);
+Buffer *create_buffer(int status, unsigned int pid, int child_pid, unsigned int remaining_time, int cid);
 /**free the Execution transcript
  */
 void free_buffer(void *buffer);
@@ -73,6 +73,6 @@ void customized_schedule_algorithm(Scheduler *scheduler);
 int check_empty_processor(Pqueue *processores);
 /**compute total remaining time among all the processores and processes
  */
-int total_remaining_time(Pqueue *processores, Pqueue *processes);
+unsigned int total_remaining_time(Pqueue *processores, Pqueue *processes);
 
 #endif

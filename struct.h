@@ -16,38 +16,38 @@ typedef struct node{
 // Priority Queue
 typedef struct pqueue{
     Node *head;
-    int length;
+    unsigned int length;
 }Pqueue;
 
 //structure of process
 typedef struct process{
-    int pid;
+    unsigned int pid;
     char parallelisable;
     //child_pid is -1 if it is not a child process
     int child_pid;
     int status;
     Pqueue *children;
-    int remaining_time;  
+    unsigned int remaining_time;  
 
     //the information for performance sttatistics  
 
-    int coming_time;
+    unsigned int coming_time;
     //the required time for the whole process, not subprocess
-    int required_time;
-    int finish_time;
+    unsigned int required_time;
+    unsigned int finish_time;
 }Process;
 
 //structure of processor
 typedef struct processor{
     int cid;
-    int remaining_time;
+    unsigned int remaining_time;
     Pqueue *processes;
 }Processor;
 
 //structure of scheduler
 typedef struct scheduler{
-    int curr_time;
-    int num_proc_left;
+    unsigned int curr_time;
+    unsigned int num_proc_left;
     int count_processor;
     Pqueue *finished_processes;
     Process *upcoming_process;
@@ -65,9 +65,9 @@ typedef struct scheduler{
 //structure of Execution transcript buffer
 typedef struct buffer{
     int status;
-    int pid;
+    unsigned int pid;
     int child_pid;
-    int remaining_time;
+    unsigned int remaining_time;
     int cid;
 }Buffer;
 

@@ -15,7 +15,7 @@
 
 /**create a new process
  */
-Process *create_process(int pid, char parallelisable, int child_pid, Pqueue *childs,int coming_time, int required_time, int remaining_time);
+Process *create_process(unsigned int pid, char parallelisable, unsigned int child_pid, Pqueue *childs,unsigned int coming_time, unsigned int required_time, unsigned int remaining_time);
 /**free a process
  */
 void free_process(void *process);
