@@ -13,7 +13,7 @@ static void eliminate_zero(double num, char *str);
  * and read one process from file
  * return NULL if file is empty
  */
-Scheduler *create_scheduler(int num_p,FILE *process_file){
+Scheduler *create_scheduler(int num_p,FILE *process_file,int customize){
     Scheduler *scheduler = (Scheduler *)malloc(sizeof(Scheduler));
 
     scheduler->curr_time = 0;
@@ -22,6 +22,14 @@ Scheduler *create_scheduler(int num_p,FILE *process_file){
     scheduler->upcoming_process = NULL;
     scheduler->processores = create_pqueue();
     scheduler->num_proc_left = 0;
+    scheduler->customize = customize;
+    if(customize){
+        scheduler->wait_allocation_processes = create_pqueue();
+    }
+    else{
+        scheduler->wait_allocation_processes = NULL;
+    }
+
     //create and insert processores into cheduler
     int i = 0;
     for(i=0;i<num_p;i++){
@@ -51,21 +59,29 @@ void free_scheduler(Scheduler *scheduler){
     free_pqueue(scheduler->processores,&free_processor);
     free_pqueue(scheduler->execution_transcript_buffer,&free_buffer);
     free_pqueue(scheduler->finished_processes,&free_process);
+    free_pqueue(scheduler->wait_allocation_processes,&free_process);
     free(scheduler);
 }
 
 /**the algorithm to allocate a process to a processor
  * return 1 if schedule a process
  * return -1 if upcoming process is NULL
+ * return 2 if using customized schedule algorithm
  * return 0 otherwise
  */
 int schedule_process(Scheduler *scheduler){
+    //use customize algorithm
+    if(scheduler->customize){
+        customized_schedule_algorithm(scheduler);
+        return 2;
+    }
+
     if(scheduler->upcoming_process == NULL){
         return -1;
     }
     if(scheduler->upcoming_process->coming_time == scheduler->curr_time){
         Pqueue *processes = create_pqueue();
-        //read until get a process in come in future
+        //read until get a process which arrives in the future
         while(scheduler->upcoming_process != NULL && scheduler->upcoming_process->coming_time == scheduler->curr_time){
             push_data(processes,scheduler->upcoming_process,&compare_process);
             scheduler->upcoming_process = read_next_process(scheduler->process_file);
@@ -82,7 +98,7 @@ int schedule_process(Scheduler *scheduler){
             }   
             //parallelisable process 
             else{
-                split_process(scheduler,curr_process);
+                compute_split_num(scheduler,curr_process);
             }
         }
         free_pqueue(processes,&free_process);
@@ -112,34 +128,51 @@ Process *read_next_process(FILE *process_file){
     return NULL;
 }
 
-/**
-split the process which is parallelisable
-*/
-void split_process(Scheduler *scheduler, Process *process){
+/**compute the split number of a parallelisable process and allocate its subprocesses
+ */
+void compute_split_num(Scheduler *scheduler, Process *process){
 
-    Process *subprocess;
-    Pqueue *children = create_pqueue();
-    int i;
     int split_num;
-    Node *curr_node = scheduler->processores->head;
-    Processor *curr_processor;
     //2 processor
     if(scheduler->count_processor == 2){
         split_num = 2;
     }
-    //N processor(not today)
+    //N processor
     else{
         //split to the minimum number between number of processor and remaining time
         split_num = scheduler->count_processor > process->remaining_time ? process->remaining_time : scheduler->count_processor;
     }
 
+    split_process(scheduler, process, split_num );
+}
 
+/**split the process which is parallelisable
+ * and push allocate them
+ * will treat process as non-parallelisable while split number < 2
+*/
+void split_process(Scheduler *scheduler, Process *process, int split_num){
+
+    if(split_num < 2){
+        //need to reassign head processor again
+        Processor *head_processor = pop(scheduler->processores);
+        allocate_process(head_processor,process);
+        push_data(scheduler->processores,head_processor,&compare_processor);
+        return;
+    }
+
+    Process *subprocess;
+    Pqueue *children = create_pqueue();
+    int i;
+
+    Node *curr_node = scheduler->processores->head;
+    Processor *curr_processor;
     int remaining_time = process->remaining_time/split_num +1;
     //need to + 1
-    if((process->remaining_time)/(double)split_num > process->remaining_time/split_num){
+    if(process->remaining_time%split_num){
         remaining_time++;
     }
-    //for each process, push it into children to relate all subprocess for a process together
+
+    //for each process, push it into children to relate all subprocess from a process together
     for(i=0;i<split_num;i++,curr_node=curr_node->next){
         curr_processor = curr_node->data;
         subprocess = create_process(process->pid,PARALLELISABLE,i,children,process->coming_time,process->required_time,remaining_time);
@@ -182,7 +215,7 @@ int run_scheduler(Scheduler *scheduler){
     //print all the Execution transcripts
     print_buffers(scheduler);
 
-    
+
     //after running all the processor, it becomes next second
     scheduler->curr_time ++;
 
@@ -205,6 +238,7 @@ int run_scheduler(Scheduler *scheduler){
                 //if it is the last subprocess
                 if(pqueue_length(childern)==0){
                     finish_a_process(scheduler, curr_processor, process);
+                    free_pqueue(childern,&free_process);
                 }
                 //not the last subprocess
                 else{
@@ -404,3 +438,112 @@ void print_buffers(Scheduler *scheduler){
     }
 }
 
+
+/**customize algorithm
+ */
+void customized_schedule_algorithm(Scheduler *scheduler){
+
+    //read until get a process which arrives in the future
+    while(scheduler->upcoming_process != NULL && scheduler->upcoming_process->coming_time == scheduler->curr_time){
+        //process with execution time less than 3 should not be parallelisable because that does not decrease its finishing time
+        if(scheduler->upcoming_process->remaining_time < 3){
+            scheduler->upcoming_process->parallelisable = NOTPARALLELISABLE;
+        }
+        push_data(scheduler->wait_allocation_processes,scheduler->upcoming_process,&compare_process_customize);
+        scheduler->upcoming_process = read_next_process(scheduler->process_file);
+        (scheduler->num_proc_left)++;
+    }
+
+    //the minimum time to finish all the parallelisable processes
+    int minimum_finishing_time = -1;
+    int split_num;
+
+    //allocate process when processes waiting for process is not empty
+    //and there is an empty process 
+    while(!isEmpty(scheduler->wait_allocation_processes) && check_empty_processor(scheduler->processores)){
+        Process *curr_process = pop(scheduler->wait_allocation_processes);
+        //non-parallelisable process
+        if(curr_process->parallelisable == NOTPARALLELISABLE || scheduler->count_processor == 1){
+            //need to reassign head processor again
+            Processor *head_processor = pop(scheduler->processores);
+            allocate_process(head_processor,curr_process);
+            push_data(scheduler->processores,head_processor,&compare_processor);
+        }   
+        //parallelisable process
+        //allocate all the parallelisable process
+        else{
+            
+            //compute minimum time to finish all the parallelisable processes(round up to interger)
+            if(minimum_finishing_time == -1){
+                int remaining_time = total_remaining_time(scheduler->processores,scheduler->wait_allocation_processes) + curr_process->remaining_time;
+                minimum_finishing_time = remaining_time/scheduler->count_processor;
+                if(total_remaining_time(scheduler->processores,scheduler->wait_allocation_processes)%scheduler->count_processor){
+                    minimum_finishing_time++;
+                }
+                if(minimum_finishing_time == 0){
+                    minimum_finishing_time = 1;
+                }
+            }
+            
+            //compute split number for a parallelisable process(round down to interger)
+            split_num = curr_process->remaining_time/minimum_finishing_time;
+            split_process(scheduler, curr_process, split_num);
+            //need to sort the processores
+            scheduler->processores = pqueue_sort(scheduler->processores, &compare_processor);
+
+
+            while(!isEmpty(scheduler->wait_allocation_processes)){
+                curr_process = pop(scheduler->wait_allocation_processes);
+                //compute split number for a parallelisable process(round down to interger)
+                split_num = curr_process->remaining_time/minimum_finishing_time;
+                split_process(scheduler, curr_process, split_num);
+                //need to sort the processores
+                scheduler->processores = pqueue_sort(scheduler->processores, &compare_processor);
+            }
+        }
+    }
+
+
+}
+
+/**check whether there is an empty processor in priority queue
+ * return 1 if there is an empty processor
+ */
+int check_empty_processor(Pqueue *processores){
+    if(processores == NULL){
+        return 0;
+    }
+
+    Node *curr_node = processores->head;
+    while(curr_node != NULL){
+        if(((Processor *)curr_node->data)->remaining_time == 0){
+            return 1;
+        }
+        curr_node = curr_node->next;
+    }
+    return 0;
+}
+
+/**compute total remaining time among all the processores and processes
+ */
+int total_remaining_time(Pqueue *processores, Pqueue *processes){
+    int total_remaining_time = 0;
+    Node *curr_node;
+
+    if(processores != NULL ){
+        curr_node = processores->head;
+        while(curr_node != NULL){
+            total_remaining_time += ((Processor *)curr_node->data)->remaining_time;
+            curr_node = curr_node->next;
+        }
+    }
+    if(processes != NULL ){
+        curr_node = processes->head;
+        while(curr_node != NULL){
+            total_remaining_time += ((Process *)curr_node->data)->remaining_time;
+            curr_node = curr_node->next;
+        }
+    }
+
+    return total_remaining_time;
+}

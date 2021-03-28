@@ -54,6 +54,11 @@ typedef struct scheduler{
     Pqueue *processores;
     Pqueue *execution_transcript_buffer;
     FILE *process_file;
+
+    //customize algorithm
+    int customize;
+    //processes wait for allocation
+    Pqueue *wait_allocation_processes;
 }Scheduler;
 
 

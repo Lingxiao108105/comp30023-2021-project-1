@@ -105,3 +105,46 @@ int compare_process(void *pv1, void *pv2){
         return 1;
     }
 }
+
+/**compare two process
+ * process with longer remaining time is smaller
+ */
+int compare_process_customize(void *pv1, void *pv2){
+    Process *p1 = (Process *)pv1;
+    Process *p2 = (Process *)pv2;
+    //non paralielisable is smaller or prior
+    if(p1->parallelisable != p2->parallelisable){
+        if(p1->parallelisable == NOTPARALLELISABLE){
+            return -1;
+        }
+        else{
+            return 1;
+        }
+    }
+
+    if(p1->remaining_time < p2->remaining_time){
+        return 1;
+    }
+    else if(p1->remaining_time == p2->remaining_time){
+        if(p1->pid < p2->pid){
+            return -1;
+        }
+        else if(p1->pid == p2->pid){
+            if(p1->child_pid < p2->child_pid){
+                return -1;
+            }
+            else if(p1->child_pid == p2->child_pid){
+                return 1;
+            }
+            else{
+                return 1;
+            }
+        }
+        else{
+            return 1;
+        }
+    }
+    else{
+        return -1;
+    }
+}

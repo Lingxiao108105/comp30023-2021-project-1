@@ -7,6 +7,7 @@
 
 #define FILE_CMD "-f"
 #define PROCESS_NUM_CMD "-p"
+#define CUSTRUMER "-c"
 
 int main(int argc, char* argv[]){
 
@@ -14,6 +15,8 @@ int main(int argc, char* argv[]){
     int num_p = 0;
     //the file contain the information about processes
     FILE *process_file;
+    //whether use customize algorithm
+    int customize = 0;
     //the scheduler
     Scheduler *scheduler;
 
@@ -26,11 +29,14 @@ int main(int argc, char* argv[]){
         else if(!my_strcmp(argv[i],PROCESS_NUM_CMD)){
             num_p = atoi(argv[++i]);
         }
+        else if(!my_strcmp(argv[i],CUSTRUMER)){
+            customize = 1;
+        }
     }
 
     //create a new scheduler
-    if((scheduler = create_scheduler(num_p,process_file)) == NULL){
-        printf("Empty file!");
+    if((scheduler = create_scheduler(num_p,process_file,customize)) == NULL){
+        printf("file not exist!");
         return 0;
     };
     //run the scheduler till end

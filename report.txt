@@ -1,0 +1,5 @@
+only allocate process when there is an empty processor.
+order by non-parallelisable processes first then the most time-comsuming process first.
+When only parallelisable processes left, find the minimum finishing time k(round up to integer) which is total remaining time/(processor number)
+and split process according to k/(processor number)(round down to integer)
+

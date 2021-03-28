@@ -38,5 +38,9 @@ int check_process(Process *process);
 /**compare two process
  */
 int compare_process(void *p1, void *p2);
+/**compare two process
+ * process with longer remaining time is smaller
+ */
+int compare_process_customize(void *pv1, void *pv2);
 
 #endif
